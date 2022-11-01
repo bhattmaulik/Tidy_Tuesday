@@ -1,0 +1,45 @@
+---
+title: "Halloween Horror Movies"
+editor: visual
+---
+
+Data from Week 44 of TidyTuesday in 2022
+
+```{r data}
+library(tidyverse)
+library(lubridate)
+library(patchwork)
+horror_movies <- readr::read_csv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2022/2022-11-01/horror_movies.csv')
+```
+
+Let's get a quick overview of the data.
+
+```{r}
+summary(horror_movies)
+lapply(horror_movies,class)
+```
+
+Now let's create a first visualization.
+
+```{r}
+horror_summary <- horror_movies %>% group_by(lubridate::year(release_date)) %>% summarize(n = n()) %>% select(Year = "lubridate::year(release_date)", Films = "n")
+supply <- ggplot(horror_summary, aes(Year,Films)) + geom_line() + ggtitle("Number of Horror Films Released Over Years")
+```
+
+This shows that number of horror films released has increased gradually over the years from 1950s to 2020. Can we compare it with the revenue of the horror films? Let's check.
+
+```{r}
+horror_collection <- horror_movies %>% 
+  group_by(lubridate::year(release_date)) %>% summarize(Total_Collection = sum(revenue)) %>% 
+  select(Year = "lubridate::year(release_date)", Total_Collection) %>% 
+  mutate(Total_Collection = Total_Collection/1000000)
+demand <- ggplot(horror_collection, aes(Year,Total_Collection)) + geom_line() + labs(x = "Year", y = "Total Revenue (Millions)") + ggtitle("Box Office Collection of Horror Films Over Years")
+```
+
+Now we can put both the graphs together.
+
+```{r}
+supply / demand
+```
+
+We can see that the box office revenue has decreased much before 2020. That is one reason why less horror films are made since 2020.
